@@ -14,31 +14,89 @@ var connection = mysql.createConnection({
 
 connection.connect(function(err, res){
     if(err) throw err;
-    console.log("you are connected!");
+    console.log("WELCOME TO BAMAZON!!");
 
     displayProducts();
 });
 
 function displayProducts() {
-    connection.query("SELECT * FROM products", function(err, data) {
+    var queryDB = "SELECT * FROM products"
+    connection.query(queryDB, function(err, data) {
         if (err) throw err
-             
-        data.forEach( product => {
-          console.log(`${product.item_id} - ${product.product_name}, PRICE: $${product.price}`);
-        });
-    
+        var strObj = " ";
+        for (var i = 0; i < data.length; i++) {
+          
+          strObj = "Item ID: " + data[i].item_id + "||"
+          + "Product Name: " + data[i].product_name + "||"
+          + "Department: " + data[i].department_name + "||"
+          + "Price: $" + data[i].price + "||"
+          + "In Stock: " + data[i].stock_quantity;
+
+          console.log(strObj);
+        }
+
+        promptPurchase();
+    });       
+};
+
+
+function promptPurchase(){
+    inquirer.prompt([
+      {
+        name: "item_id",
+        type: "input",
+        message: "Please enter the Item ID you like to purchase",
+        validate: inputInt,
+        filter: Number
+
+      },
+      {
+        name: "quantity",
+        type: 'input',
+        message: 'How many do you need?',
+        validate: inputInt,
+        filter: Number
+      }
+    ]).then(function(answer){
+        var item = answer.item_id;
+        var quantity = answer.stock_quantity;
+
         
-        // askPurchaseQuestions();
-      });
+        connection.query("SELECT * FROM products WHERE ?", {item_id: item}, function(err, data){
+          if(err) throw err;
+          if (data.length === 0) {
+            console.log("Invalid item ID");
+            displayInventory();
+        } else {
+            var productData = data[0];
+            if (quantity <= productData.stock_quantity) {
+              console.log("You're in luck!");
+              var updateProduct = "UPDATE products SET stock_quantity = " + (productData.stock_quantity - quantity) + "WHERE item_id= " + item;
+              connection.query(updateProduct, function(err, data){
+                if(err)throw err;
+                console.log("$"+productData.price*quantity)
+                console.log("Your order has been placed, thanks for shopping!");
+                connection.end();
+              })
+            } else {
+              console.log("Sorry, not enough in stock. Try again!");
+              displayProducts
+            }
+          }
+        })
+
+    })
 }
 
-// function inputID(value) {
-// 	var integer = Number.isInteger(parseFloat(value));
-// 	var sign = Math.sign(value);
 
-// 	if (integer && (sign === 1)) {
-// 		return true;
-// 	} else {
-// 		return 'Please enter a whole non-zero number.';
-// 	}
-// }
+
+function inputInt(value) {
+	var integer = Number.isInteger(parseFloat(value));
+	var sign = Math.sign(value);
+
+	if (integer && (sign === 1)) {
+		return true;
+	} else {
+		return 'Please enter a whole non-zero number.';
+	}
+}

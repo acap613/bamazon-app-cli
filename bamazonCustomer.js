@@ -43,7 +43,7 @@ function displayProducts() {
 function promptPurchase(){
     inquirer.prompt([
       {
-        name: "itemID",
+        name: "item_id",
         type: "input",
         message: "Please enter the Item ID you like to purchase",
         validate: inputInt,
@@ -58,13 +58,12 @@ function promptPurchase(){
         filter: Number
       }
     ]).then(function(answer){
-        var item = answer.itemID;
+        var item = answer.item_id;
         var quantity = answer.quantity;
-
         
         connection.query("SELECT * FROM products WHERE ?", {item_id: item}, function(err, data){
           if(err) throw err;
-          if (data.length === 0) {
+          if (data === isNaN) {
             console.log("Invalid item ID");
             displayInventory();
           } else {
@@ -72,10 +71,10 @@ function promptPurchase(){
             
             if (quantity <= productData.stock_quantity) {
               console.log("You're in luck!");
-              var updateProduct = "UPDATE products SET stock_quantity = " + (productData.stock_quantity - quantity) + "WHERE item_id = " + item;
+              var updateProduct = "UPDATE products SET stock_quantity = " + [productData.stock_quantity - quantity] + " WHERE item_id = " + item;
               connection.query(updateProduct, function(err, data){
                 if(err)throw err;
-                console.log("$"+productData.price*quantity)
+                console.log("Your total will be $"+productData.price*quantity)
                 console.log("Your order has been placed, thanks for shopping!");
                 connection.end();
               });
@@ -92,7 +91,7 @@ function promptPurchase(){
 
 
 function inputInt(value) {
-	var integer = Number.isInteger(parseFloat(value));
+	var integer = Number.isInteger(parseInt(value));
 	var sign = Math.sign(value);
 
 	if (integer && (sign === 1)) {

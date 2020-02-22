@@ -74,7 +74,7 @@ function promptPurchase(){
               var updateProduct = "UPDATE products SET stock_quantity = " + [productData.stock_quantity - quantity] + " WHERE item_id = " + item;
               connection.query(updateProduct, function(err, data){
                 if(err)throw err;
-                console.log("Your total will be $"+productData.price*quantity)
+                console.log("The total is $"+productData.price*quantity)
                 console.log("Your order has been placed, thanks for shopping!");
                 connection.end();
               });
